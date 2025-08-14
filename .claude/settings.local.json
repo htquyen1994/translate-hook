@@ -4,7 +4,8 @@
       "Bash(ng update:*)",
       "Bash(git add:*)",
       "Bash(git commit:*)",
-      "Bash(npm install)"
+      "Bash(npm install)",
+      "Bash(ng version)"
     ],
     "deny": [],
     "ask": []

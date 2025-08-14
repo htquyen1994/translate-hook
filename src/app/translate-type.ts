@@ -1,4 +1,5 @@
 import { Injector } from "@angular/core";
+import type { I18nTranslate } from "./translate-base";
 
 export type TranslationTemplateFn = (values: any[]) => string;
 

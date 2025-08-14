@@ -1,10 +1,16 @@
-import { catchError, firstValueFrom, map, Observable, of, shareReplay } from "rxjs";
+import { catchError, firstValueFrom, map, Observable, of, shareReplay, combineLatest, switchMap, startWith } from "rxjs";
 import { I18nConfig, TranslationLoadResponse, TranslationData, TranslationLoadEvent, TranslationTemplateFn } from "./translate.type";
-import { effect, resource, Signal, signal } from "@angular/core";
+import { effect, resource, Signal, signal, computed } from "@angular/core";
 import { HttpClient } from "@angular/common/http";
-import { I18nTranslate } from "./translate";
+import { I18nTranslate } from "./translate-base";
 import { LocalStorageService } from "@@coreService";
-import { DEFAULT_I18N_CONFIG } from "./translate.token";
+
+const DEFAULT_I18N_CONFIG = {
+  assetsUrl: './assets/i18n',
+  defaultLanguage: 'vi',
+  fallbackLanguage: 'en',
+  languageSupported: ['vi', 'en']
+};
 
 export class I18nTranslateImplement extends I18nTranslate {
   #httpClient!: HttpClient;
@@ -20,7 +26,9 @@ export class I18nTranslateImplement extends I18nTranslate {
   #translateLoadResource = resource({
     request: () => ({ lang: this.#currentLanguage() }),
     loader: ({ request }) => {
-      if (!request || !request?.lang) return Promise.reject();
+      if (!request || !request?.lang) {
+        return Promise.reject(new Error('Invalid language request'));
+      }
       const { lang } = request;
       this.#translationRequests[lang] ??= this.#loadTranslateAssetResources(lang);
       return firstValueFrom(this.#translationRequests[lang]);
@@ -92,6 +100,27 @@ export class I18nTranslateImplement extends I18nTranslate {
 
   public get(key: string, ...values: any[]): string {
     return this.#getTranslationText(key, this.#currentLanguage(), values);
+  }
+
+  override get$(key: string, ...values: any[]): Observable<string> {
+    // Observable that reacts to language changes and translation loading
+    return combineLatest([
+      this.currentLanguageSignal(),
+      this.eventLanguageLoadedSignal()
+    ]).pipe(
+      startWith([this.#currentLanguage(), null]),
+      map(([currentLang]) => this.#getTranslationText(key, currentLang, values))
+    );
+  }
+
+  override getSignal(key: string, ...values: any[]): Signal<string> {
+    // Signal that computes translation based on current language and loaded translations
+    return computed(() => {
+      const currentLang = this.#currentLanguage();
+      // Trigger recomputation when translations are loaded
+      this.#eventLanguageLoaded();
+      return this.#getTranslationText(key, currentLang, values);
+    });
   }
 
   #getTranslationText(key: string, currentLang: string, values: any[]): string {
@@ -171,5 +200,10 @@ export class I18nTranslateImplement extends I18nTranslate {
     if (a === b) return false;
     if (Object.keys(a).length !== Object.keys(b).length) return true;
     return false;
+  }
+
+  destroy(): void {
+    this.#storeLanguage.clear();
+    this.#translationRequests = {};
   }
 }

@@ -1,6 +1,6 @@
 import { Injector, Signal } from '@angular/core';
-import { I18nConfig, TranslationLoadEvent } from './translate.type';
-import { AbstractService } from '@@abstract';
+import { Observable } from 'rxjs';
+import { I18nConfig, TranslationLoadEvent } from './translate-type';
 
 export abstract class I18nTranslate {
   static I18N_STORAGE_KEY = 'csp-lang';
@@ -26,7 +26,16 @@ export abstract class I18nTranslate {
   abstract setLanguageSupport(langs: string[]): void;
   abstract getLanguageSupport(): string[];
   abstract getCurrentLang(): string;
+  
+  // Synchronous get
   abstract get(key: string, ...values: any[]): string;
+  
+  // Observable get - reactive to language changes
+  abstract get$(key: string, ...values: any[]): Observable<string>;
+  
+  // Signal get - reactive to language changes  
+  abstract getSignal(key: string, ...values: any[]): Signal<string>;
+  
   abstract currentLanguageSignal: Signal<string>;
   abstract eventLanguageLoadedSignal: Signal<TranslationLoadEvent>;
 }

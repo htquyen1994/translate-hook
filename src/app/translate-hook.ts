@@ -1,6 +1,6 @@
-import { I18nTranslate } from "./translate";
+import { I18nTranslate } from "./translate-base";
 import { I18nTranslateImplement } from "./translate-implement";
-import { I18nConfig } from "./translate.type";
+import { I18nConfig } from "./translate-type";
 
 const storeI18nTranslate = new WeakMap<Function, InstanceType<typeof I18nTranslate>>();
 
