@@ -8,6 +8,7 @@
       "Bash(ng version)"
     ],
     "deny": [],
-    "ask": []
+    "ask": [],
+    "defaultMode": "acceptEdits"
   }
 }
