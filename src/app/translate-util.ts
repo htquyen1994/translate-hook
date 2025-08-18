@@ -19,8 +19,13 @@ function compileTemplateFunction(template: string): (values: any[]) => string {
     return match;
   });
   segments.push(template.slice(lastIndex));
+   if (placeholders.length === 0) {
+    return () => template;
+  }
   return (values: any[]) => taggedTemplate(segments, placeholders, values);
-} export function isDifferentTranslateData(a?: TranslationData, b?: TranslationData): boolean {
+}
+
+export function isDifferentTranslateData(a?: TranslationData, b?: TranslationData): boolean {
   if (!a || !b) return true;
   if (a === b) return false;
   if (Object.keys(a).length !== Object.keys(b).length) return true;
